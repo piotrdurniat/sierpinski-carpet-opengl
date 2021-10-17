@@ -1,20 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
 #include <ctime>
-
+#include <math.h>
 #include <GL/glut.h>
 
-GLdouble width, height;
+int width, height;
 int windowHandle;
 const float deformation = 0.0;
 const bool color = false;
-
-void init(void)
-{
-	width = 800.0;
-	height = 800.0;
-	return;
-}
+int iterations = 5;
+int carpetWidth = 200;
 
 float randomDeformation(float width)
 {
@@ -41,7 +35,7 @@ void setRandomColor()
 
 void drawSquare(float x, float y, float width)
 {
-	glBegin(GL_TRIANGLE_STRIP);
+	glBegin(GL_POLYGON);
 
 	setRandomColor();
 	x += randomDeformation(width);
@@ -56,17 +50,17 @@ void drawSquare(float x, float y, float width)
 	setRandomColor();
 	x += randomDeformation(width);
 	y += randomDeformation(width);
-	glVertex2f(x, y + width);
+	glVertex2f(x + width, y + width);
 
 	setRandomColor();
 	x += randomDeformation(width);
 	y += randomDeformation(width);
-	glVertex2f(x + width, y + width);
+	glVertex2f(x, y + width);
 
 	glEnd();
 }
 
-void sierpinskiCarpet(float x, float y, float width, float iterations)
+void sierpinskiCarpet(float x, float y, float width, int iterations)
 {
 
 	for (int i = 0; i < 3; i++)
@@ -76,7 +70,7 @@ void sierpinskiCarpet(float x, float y, float width, float iterations)
 			if (i == 1 && j == i)
 				continue;
 
-			float squareW = width / 3;
+			float squareW = floor(width / 3.0);
 			float squareX = x + squareW * i;
 			float squareY = y + squareW * j;
 
@@ -100,9 +94,7 @@ void display(void)
 
 	glBegin(GL_LINES);
 
-	const int iterations = 5;
-
-	sierpinskiCarpet(0, 0, 800.0f, iterations);
+	sierpinskiCarpet(0, 0, carpetWidth, iterations);
 
 	glEnd();
 	glFlush();
@@ -126,7 +118,45 @@ void reshape(int w, int h)
 
 int main(int argc, char *argv[])
 {
-	init();
+
+	if (argc < 3)
+	{
+		std::cerr << "Usage: " << argv[0] << "--width CARPET WIDTH\n";
+		return 1;
+	}
+
+	for (int i = 1; i < argc; ++i)
+	{
+		if (std::string(argv[i]) == "--width")
+		{
+			if (i + 1 < argc)
+			{
+				i++;
+
+				carpetWidth = std::stoi(argv[i]);
+				width = carpetWidth;
+				height = carpetWidth;
+			}
+			else
+			{
+				std::cerr << "--width option requires one argument.\n";
+				return 1;
+			}
+		}
+		if (std::string(argv[i]) == "--iterations")
+		{
+			if (i + 1 < argc)
+			{
+				i++;
+				iterations = std::stoi(argv[i]);
+			}
+			else
+			{
+				std::cerr << "--iterations option requires one argument.\n";
+				return 1;
+			}
+		}
+	}
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);
