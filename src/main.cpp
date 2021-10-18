@@ -7,8 +7,8 @@
 int carpetWidth = 728;
 int width = carpetWidth;
 int height = carpetWidth;
-const float deformation = 0.0;
-const bool color = false;
+float deformation = 0.0;
+bool color = false;
 int iterations = 6;
 
 int intPow(int base, int exp)
@@ -27,12 +27,9 @@ int intPow(int base, int exp)
 	return result;
 }
 
-float randomDeformation(GLdouble width)
+float randomFloat(float LO, float HI)
 {
-	if (deformation == 0)
-		return 0.0;
-	float maxDeformation = width * deformation;
-	return maxDeformation / 2 - rand() % int(maxDeformation);
+	return LO + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (HI - LO)));
 }
 
 void setRandomColor()
@@ -50,11 +47,15 @@ void setRandomColor()
 	glColor3ub(r, g, b);
 }
 
-void setRandomParameters(GLdouble &x, GLdouble &y)
+/**
+ * Adds a random value between -width and width to x and y
+ * Sets a random color
+ */
+void setRandomParameters(GLdouble &x, GLdouble &y, GLdouble width)
 {
 	setRandomColor();
-	x += randomDeformation(width);
-	y += randomDeformation(width);
+	x += randomFloat(-width * deformation, width * deformation);
+	y += randomFloat(-width * deformation, width * deformation);
 }
 
 void drawSquare(GLdouble x, GLdouble y, GLdouble width)
@@ -64,16 +65,16 @@ void drawSquare(GLdouble x, GLdouble y, GLdouble width)
 	x = x - 1.0;
 	y = y - 1.0;
 
-	setRandomParameters(x, y);
+	setRandomParameters(x, y, width);
 	glVertex2f(x, y);
 
-	setRandomParameters(x, y);
+	setRandomParameters(x, y, width);
 	glVertex2f(x + width, y);
 
-	setRandomParameters(x, y);
+	setRandomParameters(x, y, width);
 	glVertex2f(x + width, y + width);
 
-	setRandomParameters(x, y);
+	setRandomParameters(x, y, width);
 	glVertex2f(x, y + width);
 
 	glEnd();
@@ -127,7 +128,23 @@ int main(int argc, char *argv[])
 	{
 		std::string flag = argv[i];
 
+		if (flag == "--color")
+		{
+			color = true;
+			continue;
+		}
+		else if (flag == "--help" || flag == "-h")
+		{
+			std::cout << "Available flags: \n"
+					  << "    --color - Draws the quadrilaterals on the carpet using random colors\n"
+					  << "    -h or -help - Prints the available flags\n"
+					  << "    --width <number> - Sets the carpet width to the specified number\n"
+					  << "    --iterations <number> - Sets the number of iterations used for drawing the carpet\n";
+			return 0;
+		}
+
 		i++;
+
 		if (i >= argc)
 		{
 			std::cerr << flag << " flag requires one argument.\n";
@@ -148,6 +165,15 @@ int main(int argc, char *argv[])
 			{
 				std::cerr << "Number of iterations must be greater than 0";
 				return 1;
+			}
+		}
+		else if (flag == "--deformation")
+		{
+			deformation = std::stof(argv[i]);
+
+			if (deformation<0.0 | deformation> 1.0)
+			{
+				std::cerr << "Deformation value must be between 0.0 and 1.0";
 			}
 		}
 	}
