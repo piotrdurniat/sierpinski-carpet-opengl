@@ -4,12 +4,28 @@
 #include <math.h>
 #include <GL/glut.h>
 
-int width, height;
-int windowHandle;
+int carpetWidth = 728;
+int width = carpetWidth;
+int height = carpetWidth;
 const float deformation = 0.0;
 const bool color = false;
-int iterations = 5;
-int carpetWidth = 200;
+int iterations = 6;
+
+int intPow(int base, int exp)
+{
+	int result = 1;
+	while (true)
+	{
+		if (exp & 1)
+			result *= base;
+		exp >>= 1;
+		if (!exp)
+			break;
+		base *= base;
+	}
+
+	return result;
+}
 
 float randomDeformation(GLdouble width)
 {
@@ -34,34 +50,36 @@ void setRandomColor()
 	glColor3ub(r, g, b);
 }
 
+void setRandomParameters(GLdouble &x, GLdouble &y)
+{
+	setRandomColor();
+	x += randomDeformation(width);
+	y += randomDeformation(width);
+}
+
 void drawSquare(GLdouble x, GLdouble y, GLdouble width)
 {
 	glBegin(GL_POLYGON);
 
-	setRandomColor();
-	x += randomDeformation(width);
-	y += randomDeformation(width);
+	x = x - 1.0;
+	y = y - 1.0;
+
+	setRandomParameters(x, y);
 	glVertex2f(x, y);
 
-	setRandomColor();
-	x += randomDeformation(width);
-	y += randomDeformation(width);
+	setRandomParameters(x, y);
 	glVertex2f(x + width, y);
 
-	setRandomColor();
-	x += randomDeformation(width);
-	y += randomDeformation(width);
+	setRandomParameters(x, y);
 	glVertex2f(x + width, y + width);
 
-	setRandomColor();
-	x += randomDeformation(width);
-	y += randomDeformation(width);
+	setRandomParameters(x, y);
 	glVertex2f(x, y + width);
 
 	glEnd();
 }
 
-void sierpinskiCarpet(GLdouble x, GLdouble y, GLdouble width, int iterations)
+void sierpinskiCarpet(int x, int y, GLdouble width, int currentIteration, int iterations)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -70,47 +88,36 @@ void sierpinskiCarpet(GLdouble x, GLdouble y, GLdouble width, int iterations)
 			if (i == 1 && j == i)
 				continue;
 
-			GLdouble squareW = width / 3.0;
-			GLdouble squareX = x + squareW * i;
-			GLdouble squareY = y + squareW * j;
+			int step = intPow(3, (iterations - currentIteration));
+			int newX = x + i * step;
+			int newY = y + j * step;
 
-			if (iterations == 0)
+			if (currentIteration == iterations)
 			{
+				GLdouble squareW = 2.0 / intPow(3, iterations);
+				GLdouble squareX = newX * squareW;
+				GLdouble squareY = newY * squareW;
+
 				drawSquare(squareX, squareY, squareW);
 			}
 			else
 			{
-				sierpinskiCarpet(squareX, squareY, squareW, iterations - 1);
+				sierpinskiCarpet(newX, newY, width, currentIteration + 1, iterations);
 			}
 		}
 	}
 }
 
-void display(void)
+void sierpinskiCarpet(int x, int y, int width, int iterations)
 {
-	int i;
-
-	glClear(GL_COLOR_BUFFER_BIT);
-
-
-	sierpinskiCarpet(0, 0, carpetWidth, iterations);
-
-	glFlush();
-
-	return;
+	sierpinskiCarpet(x, y, width, 1, iterations);
 }
 
-void reshape(int w, int h)
+void display(void)
 {
-	width = (GLdouble)w;
-	height = (GLdouble)h;
-
-	glViewport(0, 0, (GLsizei)width, (GLsizei)height);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0, width, 0.0, height, -1.f, 1.f);
-
+	glClear(GL_COLOR_BUFFER_BIT);
+	sierpinskiCarpet(0, 0, carpetWidth, 1, iterations);
+	glFlush();
 	return;
 }
 
@@ -123,7 +130,7 @@ int main(int argc, char *argv[])
 		i++;
 		if (i >= argc)
 		{
-			std::cerr << flag << " requires one argument.\n";
+			std::cerr << flag << " flag requires one argument.\n";
 			return 1;
 		}
 
@@ -149,18 +156,9 @@ int main(int argc, char *argv[])
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);
 	glutInitWindowSize((int)width, (int)height);
 
-	glEnable(GL_SMOOTH);
-
-
-	windowHandle = glutCreateWindow("Sierpinski Carpet in OpenGL and GLUT");
-
-	glutReshapeFunc(reshape);
+	glutCreateWindow("Sierpinski Carpet in OpenGL and GLUT");
 	glutDisplayFunc(display);
-
 	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glLineWidth(3.0);
-
 	glutMainLoop();
-
 	exit(0);
 }
