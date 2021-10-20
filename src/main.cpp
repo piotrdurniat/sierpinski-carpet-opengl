@@ -1,7 +1,12 @@
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <iostream>
 #include <ctime>
 #include <string>
 #include <math.h>
+#include <GL/gl.h>
 #include <GL/glut.h>
 
 int carpetWidth = 728;
