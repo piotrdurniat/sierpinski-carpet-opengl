@@ -32,9 +32,9 @@ int intPow(int base, int exp)
 	return result;
 }
 
-float randomFloat(float LO, float HI)
+float randomFloat(float min, float max)
 {
-	return LO + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (HI - LO)));
+	return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
 }
 
 void setRandomColor()
@@ -43,11 +43,11 @@ void setRandomColor()
 	int g = 255;
 	int b = 255;
 
-	if (color == true)
+	if (color)
 	{
-		r = rand() % 255;
-		g = rand() % 255;
-		b = rand() % 255;
+		r = rand() % 256;
+		g = rand() % 256;
+		b = rand() % 256;
 	}
 	glColor3ub(r, g, b);
 }
@@ -67,8 +67,8 @@ void drawSquare(GLdouble x, GLdouble y, GLdouble width)
 {
 	glBegin(GL_POLYGON);
 
-	x = x - 1.0;
-	y = y - 1.0;
+	x -= 1.0;
+	y -= 1.0;
 
 	setRandomParameters(x, y, width);
 	glVertex2f(x, y);
